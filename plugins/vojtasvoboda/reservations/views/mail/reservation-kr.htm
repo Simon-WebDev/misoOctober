@@ -1,0 +1,26 @@
+subject = "예약"
+layout = "default"
+==
+<p>
+    Hello,<br />
+    <br />
+    예약해 주셔서 감사합니다. 예약 내용은 다음과 같습니다:<br />
+    <br />
+    예약 시간: {{ reservation.date | date("d.m.Y H:i") }}<br />
+    <br />
+    주소: {{ reservation.street }}<br />
+    성함: {{ reservation.name }} {{ reservation.lastname }}<br />
+    이메일: {{ reservation.email }}<br />
+    전화번호: {{ reservation.phone }}<br />
+    <br />
+    남기신 말씀: {{ reservation.message }}<br />
+    <br />
+     {{ reservation.created_at | date("d.m.Y H:i") }}로 예약하셨습니다. and send you confirmation as soon as possible.<br />
+    <br />
+    {% if reservationsCount == 1 %}
+    첫 예약 감사합니다.!
+    <br />
+    {% endif %}
+    <br />
+    이용해 주셔서 감사합니다.
+</p>

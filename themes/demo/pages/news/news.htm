@@ -1,0 +1,23 @@
+title = "News"
+url = "/news"
+layout = "default"
+is_hidden = 0
+
+[newsPosts]
+pageNumber = "{{ :page }}"
+postsPerPage = 10
+noPostsMessage = "No posts found"
+sortOrder = "published_at desc"
+postFeatured = 0
+postPage = "news/post"
+==
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            {% component 'newsPosts' %}
+        </div>
+        <div class="col-md-4">
+            
+        </div>
+    </div>
+</div>

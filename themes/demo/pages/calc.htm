@@ -1,0 +1,51 @@
+title = "Calculator"
+url = "/calc"
+layout = "default"
+is_hidden = 0
+==
+<?php
+
+use Illuminate\Support\Facades\Input;
+
+
+function onSubmit(){
+	$value1 = Input::post('value1');
+	$value2 = Input::post('value2');
+	$operator = Input::post('operator');
+
+	switch($operator){
+		case "*" :
+			$this['result'] = $value1 * $value2;
+			break;
+		case "+" :
+			$this['result'] = $value1 + $value2;
+			break;
+		case "-" :
+			$this['result'] = $value1 - $value2;
+			break;
+		case "/" :
+			$this['result'] = $value1 / $value2;
+			break;		
+
+	}
+
+
+
+}
+?>
+==
+<h2>Calculator</h2>
+<form class="form-inline" data-request="onSubmit" data-request-update="calpartial : '#result'">
+ 	<input type="text" name="value1" class="form-control" width="100">
+ 	<select name="operator" class="form-control" width="100">
+ 		<option value="*">*</option>
+ 		<option value="+">+</option>
+ 		<option value="-">-</option>
+ 		<option value="/">/</option>
+ 	</select>
+ 	<input type="text" name="value2" class="form-control" width="100">
+ 	<button type="submit" class="btn btn-primary">Calculate</button>
+ </form>
+ <div id="result">
+ 	{% partial 'calpartial' %}
+ </div>

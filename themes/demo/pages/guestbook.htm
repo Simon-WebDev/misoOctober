@@ -1,0 +1,232 @@
+title = "GuestBook"
+url = "/guestbook"
+layout = "default"
+is_hidden = 0
+
+[guestbook]
+==
+<div class="wrapper-guestpost">
+    
+    <div class="button-add-post">
+        <button class="btn btn-primary oc-icon-comment" type="button" data-toggle="collapse" data-target="#addpost" aria-expanded="false" aria-controls="addpost">{{'serviom.guestbook::lang.front.add_post.header' | trans}}</button>
+    </div>
+    
+    <div class="wrapper-addpost collapse" id="addpost">
+        
+        <div class="panel panel-default">     
+            <div class="panel-heading">
+                <h3 class="panel-title">{{'serviom.guestbook::lang.front.add_post.header' | trans}}</h3>
+            </div>
+            <div class="panel-body">
+                <form 
+                    class="guestbook form-elements"
+                    data-request="{{ guestbook }}::onAddPost"  
+                    data-request-validate
+                    data-request-flash>
+
+                    <div class="form-group span-left">
+                        <label for="name">
+                            {{'serviom.guestbook::lang.front.add_post.name' | trans}}
+                        </label>
+                        <input name="name" id="name" class="form-control" placeholder="{{'serviom.guestbook::lang.front.add_post.name' | trans}}"/>
+
+                        <div class="error text-danger">
+                            <span data-validate-for="name"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group span-right">
+                        <label for="subject">
+                            {{'serviom.guestbook::lang.front.add_post.subject' | trans}}
+                        </label>
+                        <input name="subject" id="subject"  class="form-control" placeholder="{{'serviom.guestbook::lang.front.add_post.subject' | trans}}"/>
+                        <div class="error text-danger">
+                            <span data-validate-for="subject"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group span-full">
+                        <label for="desc">
+                            {{'serviom.guestbook::lang.front.add_post.desc' | trans}}
+                        </label>
+                        <div class="field-markdowneditor size-huge mode-tab"
+                             data-control="markdowneditor"
+                             data-refresh-handler="onRefresh"
+                             data-control-type="front"
+                             data-view-mode="tab"
+                             data-vendor-path="{{ datavendorpath }}">
+
+                            <div class="control-toolbar editor-toolbar"></div>
+
+                            <div class="editor-write layout-cell">
+                                <textarea name="desc"></textarea>
+                            </div>
+
+                            <div class="editor-preview layout-cell"></div>
+
+                        </div>
+
+                        <div class="error text-danger">
+                            <span data-validate-for="desc"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group span-left remove-padding-bottom">
+                        {%if settings.enable_server_captcha_validation %}
+                            <div>
+                                <div class="g-recaptcha" data-callback="recaptchaCallback" data-sitekey="{{ settings.site_key }}"></div>
+                                <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl={{ settings.lang }}"></script>
+                            </div>
+                            <div class="error text-danger">
+                                <span data-validate-for="g-recaptcha-response"></span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group span-right text-right remove-padding-bottom">
+                        <button class="btn btn-success  oc-icon-envelope" data-attach-loading>
+                            {{'serviom.guestbook::lang.front.send' | trans}}
+                        </button>
+                    </div>
+                    <input type="hidden" name="parent_id" value="" />
+                </form>
+            </div>
+        </div>
+        {% put scripts %}
+            <script>
+                
++function ($) { "use strict";
+
+    
+    var PostForm = function () {
+        this.$wrap = $('.wrapper-guestpost');
+        if (this.$wrap.length > 0) {
+            this.initFormEvents();
+        }
+    };
+    
+    PostForm.prototype.replaceSmiles = function(html) 
+    {
+        var path = '/plugins/serviom/guestbook/formwidgets/blogsmilewidget/assets/images/smiles/';
+        var search = {
+            1:'<img src="'+path+'laugh.gif" class="smile">',
+            2:'<img src="'+path+'lol.gif" class="smile">',
+            3:'<img src="'+path+'smile.gif" class="smile">',
+            4:'<img src="'+path+'wink.gif" class="smile">',
+            5:'<img src="'+path+'cool.gif" class="smile">',
+            6:'<img src="'+path+'normal.gif" class="smile">',
+            7:'<img src="'+path+'whistling.gif" class="smile">',
+            8:'<img src="'+path+'redface.gif" class="smile">',
+            9:'<img src="'+path+'sad.gif" class="smile">',
+            10:'<img src="'+path+'cry.gif" class="smile">',
+            11:'<img src="'+path+'surprised.gif" class="smile">',
+            12:'<img src="'+path+'confused.gif" class="smile">',
+            13:'<img src="'+path+'sick.gif" class="smile">',
+            14:'<img src="'+path+'shocked.gif" class="smile">',
+            15:'<img src="'+path+'sleeping.gif" class="smile">',
+            16:'<img src="'+path+'tongue.gif" class="smile">',
+            17:'<img src="'+path+'rolleyes.gif" class="smile">',
+            18:'<img src="'+path+'unsure.gif" class="smile">'
+        };
+        
+        var replace = {1:':D',2:':lol:',3:':-)',4:';-)',5:'8)',6:':-|',7:':-*',8:':oops:',
+            9:':sad:',10:':cry:',11:':o',12:':-?',13:':-x',14:':eek:',15:':zzz',16:':P',17:':roll:',18:':sigh:'};
+  
+        for(var s in search) {
+            html = html.replace(search[s], replace[s]);    
+        }
+        return html;
+    };
+
+
+    PostForm.prototype.offClick = function(obj) {
+        var namespace = $(obj).parents('.post-likes').find('.namespace').attr('data-namespace');
+        this.$wrap.off('.' + namespace);
+    };
+    
+    
+    
+    
+    PostForm.prototype.initFormEvents = function() {
+        var self = this;
+        this.$wrap.find('.guestbook').on('submit', function() {
+            if(self.$wrap.find('[data-button-code=preview]').hasClass('active')) {
+                self.$wrap.find('[data-button-code=preview]').trigger('click');
+            }
+            $(this).request('{{ guestbook }}::onAddPost', 
+            {
+                complete: function() {
+                    if($('.g-recaptcha').length > 0) {
+                        grecaptcha.reset();
+                    }
+                }
+            });
+            return false;
+        });
+
+        /*this.$wrap.find('.button-add-post button').click(function() {
+            self.$wrap.find('.wrapper-addpost').toggle();
+        });*/
+
+        this.$wrap.on('click', '.quote', function() {
+            var id = $(this).attr('data-post_id');
+            self.$wrap.find('.guestbook').find('input[name=parent_id]').val(id);
+            location.href='#addpost';
+            var html = $(this).parents('.panel-default').find('.panel-body').html();
+            html = self.replaceSmiles(html);
+            var MarkdownEditor = $('[data-control=markdowneditor]').data('oc.markdownEditor');
+            if(html.indexOf('blockquote') === -1) {
+                html = '>' + $.trim(html.replace(/<p>([^<]*)<\/p>/g, '$1'));
+            } else {
+                html = '>' + $.trim(html.replace(/<blockquote>[^<]*<p>/g,'').replace(/<\/p>[^<]*<\/blockquote>/g,''));
+            }
+            MarkdownEditor.setContent('');
+            MarkdownEditor.editor.insert(html);
+            MarkdownEditor.editor.insert("\r\n\r\n");
+            MarkdownEditor.editor.focus();
+            self.$wrap.find('.wrapper-addpost').show();
+        });
+        
+        
+        this.$wrap.on('click', '.reply', function() {
+            var id = $(this).attr('data-post_id');
+            self.$wrap.find('.guestbook').find('input[name=parent_id]').val(id);
+            location.href='#addpost';
+            self.$wrap.find('.wrapper-addpost').show();
+        });
+        
+       this.$wrap.find('.post-likes').each(function() {
+            var namespace = $(this).find('.namespace').attr('data-namespace');
+            self.$wrap.on('click.' + namespace, '[data-namespace=' + namespace + '] .vote', function() {
+                var self2 = this;
+                $(this).request('{{ guestbook }}::onAddLike', {
+                    loading: $.oc.stripeLoadIndicator,
+                    data: {
+                        post_id: $(this).attr('data-post_id'),
+                        like: $(this).attr('data-like')
+                    },
+                    complete: function() {
+                        self.offClick(self2);
+                    }
+                });
+            });
+        });
+    };
+    
+    $(document).ready(function() {
+        var form = new PostForm();
+        if ($.oc === undefined) {
+            $.oc = {};
+        }
+        $.oc.guestbookPostForm = form;
+    });
+
+}(window.jQuery);
+                
+            </script>
+        {% endput %}
+    </div>
+    
+    <div class="posts">
+        {% partial '@partials/posts' %}
+    </div>
+</div>
